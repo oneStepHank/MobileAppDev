@@ -1,6 +1,6 @@
 {
-    "name": "w3",
-    "short_name": "w3",
+    "name": "myfirstapp",
+    "short_name": "myfirstapp",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
