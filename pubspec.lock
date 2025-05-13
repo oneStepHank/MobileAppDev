@@ -209,6 +209,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.1"
+  firebase_ui_oauth_google:
+    dependency: "direct main"
+    description:
+      name: firebase_ui_oauth_google
+      sha256: "92ffcac3f9fe2509ec962fd50041cae2743b7e739017edad4bbe61c829c0a610"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.1"
   firebase_ui_shared:
     dependency: transitive
     description:
