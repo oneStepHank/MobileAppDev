@@ -12,6 +12,8 @@ class DetailProduct extends StatefulWidget {
 }
 
 class _DetailProductState extends State<DetailProduct> {
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     // arguments로 전달된 Product 받기
@@ -24,21 +26,23 @@ class _DetailProductState extends State<DetailProduct> {
       (p) => p.id == argProduct.id,
       orElse: () => argProduct,
     );
-    bool _isWished = appState.wishedItem.contains(product.id);
+    bool isWished = appState.wishedItem.contains(product.id);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         onPressed:
-            _isWished
+            isWished
                 ? null // 이미 찜한 경우 비활성화
                 : () async {
+                  setState(() => _isLoading = true);
                   await appState.addWishItem(uid, product.id);
+                  setState(() => _isLoading = false);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Updated Wished List')),
                   );
                 },
         child: Icon(
-          _isWished ? Icons.check : Icons.shopping_cart,
+          isWished ? Icons.check : Icons.shopping_cart,
           color: Colors.white,
         ),
       ),
@@ -76,95 +80,107 @@ class _DetailProductState extends State<DetailProduct> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            product.imgUrl.isNotEmpty
-                ? Image.network(
-                  product.imgUrl,
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                )
-                : Image.network(
-                  'https://handong.edu/site/handong/res/img/logo.png',
-                  width: double.infinity,
-                  height: 200,
-                ),
-            const SizedBox(height: 16),
-            Row(
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                product.imgUrl.isNotEmpty
+                    ? Image.network(
+                      product.imgUrl,
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    )
+                    : Image.network(
+                      'https://handong.edu/site/handong/res/img/logo.png',
+                      width: double.infinity,
+                      height: 200,
+                    ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.thumb_up,
-                            color: Colors.redAccent,
-                          ),
-                          onPressed: () async {
-                            try {
-                              String msg = await appState.likeProduct(
-                                uid,
-                                product.id,
-                              );
-                              ScaffoldMessenger.of(
-                                context,
-                              ).showSnackBar(SnackBar(content: Text(msg)));
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
-                          },
-                        ),
                         Text(
-                          '${product.likes}',
+                          product.name,
                           style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.redAccent,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.thumb_up,
+                                color: Colors.redAccent,
+                              ),
+                              onPressed: () async {
+                                try {
+                                  String msg = await appState.likeProduct(
+                                    uid,
+                                    product.id,
+                                  );
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).showSnackBar(SnackBar(content: Text(msg)));
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(e.toString())),
+                                  );
+                                }
+                              },
+                            ),
+                            Text(
+                              '${product.likes}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ],
                 ),
+                Text(
+                  '\$ ${product.price}',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                const Divider(height: 20),
+                Text(product.description),
+                const Spacer(), // 이 줄이 아래로 밀어줌
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Creator < ${product.creator} >',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    Text(
+                      'Created : ${product.created}',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    Text(
+                      'Modified : ${product.modified}',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
               ],
             ),
-            Text('\$ ${product.price}', style: const TextStyle(fontSize: 18)),
-            const Divider(height: 20),
-            Text(product.description),
-            const Spacer(), // 이 줄이 아래로 밀어줌
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Creator < ${product.creator} >',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                Text(
-                  'Created : ${product.created}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                Text(
-                  'Modified : ${product.modified}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-              ],
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(child: CircularProgressIndicator()),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

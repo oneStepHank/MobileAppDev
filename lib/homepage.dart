@@ -84,11 +84,13 @@ class _HomepageState extends State<Homepage> {
 
 class ProductCard extends StatelessWidget {
   const ProductCard({super.key, required this.product});
-
   final Product product;
 
   @override
   Widget build(BuildContext context) {
+    final wishedIds = context.watch<AppState>().wishedItem;
+    final isWished = wishedIds.contains(product.id);
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
@@ -98,20 +100,34 @@ class ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child:
-                    product.imgUrl.isNotEmpty
-                        ? Image.network(
-                          product.imgUrl,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        )
-                        : Image.network(
-                          'https://handong.edu/site/handong/res/img/logo.png',
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child:
+                        product.imgUrl.isNotEmpty
+                            ? Image.network(
+                              product.imgUrl,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                            : Image.network(
+                              'https://handong.edu/site/handong/res/img/logo.png',
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                  ),
+                  if (isWished)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Colors.blue,
+                        size: 28,
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 3),

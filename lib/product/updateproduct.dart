@@ -18,6 +18,8 @@ class _UpdateProductState extends State<UpdateProduct> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descController;
+  bool _isLoading = false; // 로딩 상태 변수
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
@@ -54,85 +56,101 @@ class _UpdateProductState extends State<UpdateProduct> {
         title: const Text('Edit'),
         actions: [
           TextButton(
-            onPressed: () async {
-              final appState = context.read<AppState>();
-              String? newImgUrl;
+            onPressed:
+                _isLoading
+                    ? null
+                    : () async {
+                      setState(() => _isLoading = true);
+                      final appState = context.read<AppState>();
+                      String? newImgUrl;
 
-              // 이미지가 변경된 경우에만 업로드
-              if (_imgFile != null) {
-                // 기존 이미지가 있다면 삭제 (선택)
-                if (product.imgUrl.isNotEmpty) {
-                  await appState.deleteImage(product.imgUrl);
-                }
-                newImgUrl = await appState.uploadImage(_imgFile!);
-              }
+                      // 이미지가 변경된 경우에만 업로드
+                      if (_imgFile != null) {
+                        // 기존 이미지가 있다면 삭제 (선택)
+                        if (product.imgUrl.isNotEmpty) {
+                          await appState.deleteImage(product.imgUrl);
+                        }
+                        newImgUrl = await appState.uploadImage(_imgFile!);
+                      }
 
-              await appState.updateProduct(
-                id: product.id,
-                name: _nameController.text,
-                price: int.parse(_priceController.text),
-                description: _descController.text,
-                imgUrl: newImgUrl, // 변경된 경우에만 전달
-              );
-              Navigator.of(context).pushReplacementNamed('/');
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Modified!')));
-            },
+                      await appState.updateProduct(
+                        id: product.id,
+                        name: _nameController.text,
+                        price: int.parse(_priceController.text),
+                        description: _descController.text,
+                        imgUrl: newImgUrl, // 변경된 경우에만 전달
+                      );
+                      if (mounted) {
+                        Navigator.of(context).pushReplacementNamed('/');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Modified!')),
+                        );
+                      }
+                      setState(() => _isLoading = false);
+                    },
             child: const Text('Save'),
           ),
         ],
       )),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 200,
-              child:
-                  _imgFile != null
-                      ? Image.file(_imgFile!)
-                      : (product.imgUrl.isEmpty
-                          ? Image.network(
-                            'https://handong.edu/site/handong/res/img/logo.png',
-                          )
-                          : Image.network(product.imgUrl)),
-            ),
-            Divider(height: 10),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 200,
+                  child:
+                      _imgFile != null
+                          ? Image.file(_imgFile!)
+                          : (product.imgUrl.isEmpty
+                              ? Image.network(
+                                'https://handong.edu/site/handong/res/img/logo.png',
+                              )
+                              : Image.network(product.imgUrl)),
+                ),
+                const Divider(height: 10),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
                     children: [
-                      IconButton(
-                        onPressed: _pickImage,
-                        icon: Icon(Icons.camera_alt),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: _pickImage,
+                            icon: const Icon(Icons.camera_alt),
+                          ),
+                        ],
+                      ),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          label: Text('Product Name'),
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _priceController,
+                        keyboardType: TextInputType.numberWithOptions(),
+                        decoration: const InputDecoration(label: Text('Price')),
+                      ),
+                      TextFormField(
+                        controller: _descController,
+                        decoration: const InputDecoration(
+                          label: Text('Description'),
+                        ),
                       ),
                     ],
                   ),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      label: Text('Product Name'),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _priceController,
-                    keyboardType: TextInputType.numberWithOptions(),
-                    decoration: const InputDecoration(label: Text('Price')),
-                  ),
-                  TextFormField(
-                    controller: _descController,
-                    decoration: const InputDecoration(
-                      label: Text('Description'),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
       ),
     );
   }

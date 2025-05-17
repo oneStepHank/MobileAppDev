@@ -1,44 +1,78 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
 
 const GOOGLE_CLIENT_ID =
     '977177627097-lp7b7lm9vpsddc1d8p7ts9umt9r5hu4p.apps.googleusercontent.com';
 
-class Sign extends StatelessWidget {
+class Sign extends StatefulWidget {
   const Sign({super.key});
+
+  @override
+  State<Sign> createState() => _SignState();
+}
+
+class _SignState extends State<Sign> {
+  bool _isLoading = false;
+
   Future<void> _signInAnonymous(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       await FirebaseAuth.instance.signInAnonymously();
       Navigator.of(context).popAndPushNamed('/');
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed')));
+      ).showSnackBar(const SnackBar(content: Text('Failed')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      body: Stack(
         children: [
-          GoogleSignInButton(
-            loadingIndicator: CircularProgressIndicator(),
-            clientId: GOOGLE_CLIENT_ID,
-            onSignedIn: ((credential) async {
-              Navigator.of(context).popAndPushNamed('/');
-            }),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 300,
+                  child: GoogleSignInButton(
+                    loadingIndicator: CircularProgressIndicator(),
+                    clientId: GOOGLE_CLIENT_ID,
+                    onSignedIn: ((credential) async {
+                      Navigator.of(context).popAndPushNamed('/');
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: 300,
+
+                  child: ElevatedButton(
+                    onPressed:
+                        _isLoading ? null : () => _signInAnonymous(context),
+                    child: const Text('Anonymous Login-in'),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => _signInAnonymous(context),
-            child: const Text('Guest'),
-          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
     );

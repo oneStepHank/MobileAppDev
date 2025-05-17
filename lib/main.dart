@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
               '/update': (context) => UpdateProduct(),
               '/detail': (context) => DetailProduct(),
               '/profile': (context) => Profile(),
-              'wishedList': (context) => WishedList(),
+              '/wishedList': (context) => WishedList(),
             },
             title: 'Final Exam',
             theme: ThemeData(

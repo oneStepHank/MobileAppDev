@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart'
     hide EmailAuthProvider, PhoneAuthProvider;
-import 'package:firebase_core/firebase_core.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -96,7 +96,7 @@ class AppState extends ChangeNotifier {
       } else {
         // Google 로그인
         await doc.set({
-          'name': '${user.displayName!}학부생',
+          'name': user.displayName,
           'email': user.email ?? '',
           'uid': user.uid,
           'status_message': 'I promise to take the test honestly before GOD.',

@@ -13,6 +13,7 @@ class AddItemPage extends StatefulWidget {
 
 class _AddItemPageState extends State<AddItemPage> {
   File? _imgFile;
+  bool _isLoading = false; // 로딩 상태 변수
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -53,71 +54,96 @@ class _AddItemPageState extends State<AddItemPage> {
         title: const Text('Add'),
         actions: [
           TextButton(
-            onPressed: () async {
-              final appState = context.read<AppState>();
-              await appState.addProduct(
-                name: _nameController.text,
-                price: int.tryParse(_priceController.text) ?? 0,
-                description: _descController.text,
-                img: _imgFile,
-              );
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Added!')));
-            },
+            onPressed:
+                _isLoading
+                    ? null
+                    : () async {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      try {
+                        final appState = context.read<AppState>();
+                        await appState.addProduct(
+                          name: _nameController.text,
+                          price: int.tryParse(_priceController.text) ?? 0,
+                          description: _descController.text,
+                          img: _imgFile,
+                        );
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Added!')),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        }
+                      }
+                    },
             child: const Text('Save'),
           ),
         ],
       )),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 200,
-              child:
-                  _imgFile != null
-                      ? Image.file(_imgFile!)
-                      : Image.network(
-                        'https://handong.edu/site/handong/res/img/logo.png',
-                      ),
-            ),
-            Divider(height: 10),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 200,
+                  child:
+                      _imgFile != null
+                          ? Image.file(_imgFile!)
+                          : Image.network(
+                            'https://handong.edu/site/handong/res/img/logo.png',
+                          ),
+                ),
+                Divider(height: 10),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
                     children: [
-                      IconButton(
-                        onPressed: _pickImage,
-                        icon: Icon(Icons.camera_alt),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: _pickImage,
+                            icon: Icon(Icons.camera_alt),
+                          ),
+                        ],
+                      ),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          label: Text('Product Name'),
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _priceController,
+                        keyboardType: TextInputType.numberWithOptions(),
+                        decoration: const InputDecoration(label: Text('Price')),
+                      ),
+                      TextFormField(
+                        controller: _descController,
+                        decoration: const InputDecoration(
+                          label: Text('Description'),
+                        ),
                       ),
                     ],
                   ),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      label: Text('Product Name'),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _priceController,
-                    keyboardType: TextInputType.numberWithOptions(),
-                    decoration: const InputDecoration(label: Text('Price')),
-                  ),
-                  TextFormField(
-                    controller: _descController,
-                    decoration: const InputDecoration(
-                      label: Text('Description'),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
       ),
     );
   }
