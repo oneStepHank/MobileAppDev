@@ -1,18 +1,23 @@
+import 'package:final_exam/product/updateproduct.dart';
+import 'package:final_exam/product/addproduct.dart';
 import 'package:final_exam/firebase_options.dart';
 import 'package:final_exam/homepage.dart';
-import 'package:final_exam/model/appsate.dart';
+import 'package:final_exam/model/appstate.dart';
+import 'package:final_exam/product/detail.dart';
+import 'package:final_exam/product/wished_list.dart';
+import 'package:final_exam/profile.dart';
 import 'package:final_exam/sign.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Connect Firebase DB
+
   runApp(const AppRoot());
 }
 
+// Connect Firebase DB
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
 
@@ -39,14 +44,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => AppSate(),
-      child: MaterialApp(
-        initialRoute: '/sign',
-        routes: {'/': (context) => Homepage(), '/sign': (context) => Sign()},
-        title: 'Final Exam',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        ),
+      create: (context) => AppState(),
+      child: Consumer<AppState>(
+        builder: (context, appState, _) {
+          return MaterialApp(
+            initialRoute: appState.loggedIn ? '/' : '/sign',
+            routes: {
+              '/': (context) => Homepage(),
+              '/sign': (context) => Sign(),
+              '/add': (context) => AddItemPage(),
+              '/update': (context) => UpdateProduct(),
+              '/detail': (context) => DetailProduct(),
+              '/profile': (context) => Profile(),
+              'wishedList': (context) => WishedList(),
+            },
+            title: 'Final Exam',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            ),
+          );
+        },
       ),
     );
   }
