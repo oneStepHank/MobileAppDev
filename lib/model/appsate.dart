@@ -20,18 +20,6 @@ class AppSate extends ChangeNotifier {
   bool get loggedIn => _loggedIn;
 
   Future<void> init() async {
-    // Connect Firebase DB
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
-    FirebaseUIAuth.configureProviders([
-      GoogleProvider(
-        clientId:
-            '977177627097-lp7b7lm9vpsddc1d8p7ts9umt9r5hu4p.apps.googleusercontent.com',
-      ),
-    ]);
-
     // monitoring user logged state.
     FirebaseAuth.instance.userChanges().listen((user) {
       // Log-In status
